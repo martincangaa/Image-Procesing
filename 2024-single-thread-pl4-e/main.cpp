@@ -39,6 +39,16 @@ typedef struct {
  * 	dst = 255 - ((255 - src1) * (255 - src2) / 255)
  * 
  * For each pixel, calculate the new value of the pixel (R, G, B) in the destination image
+ * 
+ * We only need one pointer per Image because if we go trough the pointer we'll reach
+ * all the components of the image
+ * 
+ *       ┌─────┬─────┬─────┐ 
+ *       │     │     │     │ 
+ *       │  R  │  G  │  B  │ 
+ *       │     │     │     │ 
+ * 00x0h └─────┴─────┴─────┘ FFx0h 
+ *
  */
 void filter (filter_args_t args) {
 	
