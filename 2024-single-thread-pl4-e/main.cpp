@@ -22,18 +22,13 @@ const int FAILURE_GETTIME = -1;
 
 // Filter argument data type
 typedef struct {
-	data_t *pRsrc; // Pointers to the R, G and B components
-	data_t *pGsrc;
-	data_t *pBsrc;
-	data_t *pRdst;
-	data_t *pGdst;
-	data_t *pBdst;
+	data_t *pIsrc; // Pointers to the R, G and B components
+	data_t *pIsrc2;
 
-	data_t *pRsrc2; // Pointers to the R, G and B components
-	data_t *pGsrc2;
-	data_t *pBsrc2;
+	data_t *pIdst; // Pointer to the destination Image
 
 	uint pixelCount; // Size of the image in pixels
+	uint nComp; // Number of components of the image (3) (RGB)
 } filter_args_t;
 
 /************************************************
@@ -44,14 +39,22 @@ typedef struct {
  * 	dst = 255 - ((255 - src1) * (255 - src2) / 255)
  * 
  * For each pixel, calculate the new value of the pixel (R, G, B) in the destination image
+ * 
+ * We only need one pointer per Image because if we go trough the pointer we'll reach
+ * all the components of the image
+ * 
+ *       ┌─────┬─────┬─────┐ 
+ *       │     │     │     │ 
+ *       │  R  │  G  │  B  │ 
+ *       │     │     │     │ 
+ * 00x0h └─────┴─────┴─────┘ FFx0h 
+ *
  */
 void filter (filter_args_t args) {
 	
-    for (uint i = 0; i < args.pixelCount; i++) {
+    for (uint i = 0; i < args.pixelCount * args.nComp; i++) {
 		
-		*(args.pRdst + i) = 255 - ((255 - *(args.pRsrc + i)) * (255 - *(args.pRsrc2 + i)) / 255);
-		*(args.pGdst + i) = 255 - ((255 - *(args.pGsrc + i)) * (255 - *(args.pGsrc2 + i)) / 255);
-		*(args.pBdst + i) = 255 - ((255 - *(args.pBsrc + i)) * (255 - *(args.pBsrc2 + i)) / 255);
+		*(args.pIdst + i) = 255 - ((255 - *(args.pIsrc + i)) * (255 - *(args.pIsrc2 + i)) / 255);
 	}
 
 }
@@ -70,9 +73,9 @@ int main() {
 
 
 	srcImage.display(); // Displays the source image
-	uint width = srcImage.width();// Getting information from the source image
-	uint height = srcImage.height();	
-	uint nComp = srcImage.spectrum();// source image number of components
+	int width = srcImage.width();// Getting information from the source image
+	int height = srcImage.height();	
+	filter_args.nComp = srcImage.spectrum();// source image number of components
 	         // Common values for spectrum (number of image components):
 				//  B&W images = 1
 				//	Normal color images = 3 (RGB)
@@ -82,31 +85,24 @@ int main() {
 	filter_args.pixelCount = width * height;
 	
 	// Check if the images have the same size
-	if (srcImage2.width() != srcImage.width() || srcImage2.height() != srcImage.height()) {
+	if (width != srcImage.width() || height != srcImage.height()) {
 		throw std::runtime_error("Images must have the same size"); // This adds robustness to the code
 		exit(-1);
 	}
 
 	// Allocate memory space for destination image components
-	pDstImage = (data_t *) malloc (filter_args.pixelCount * nComp * sizeof(data_t));
+	pDstImage = (data_t *) malloc (filter_args.pixelCount * filter_args.nComp * sizeof(data_t));
 	if (pDstImage == NULL) {
 		perror("Allocating destination image");
 		exit(-2);
 	}
 
-	// Pointers to the componet arrays of the source images 1&2 to be used in the algorithm
-	filter_args.pRsrc = srcImage.data(); // pRcomp points to the R component array
-	filter_args.pGsrc = filter_args.pRsrc + filter_args.pixelCount; // pGcomp points to the G component array
-	filter_args.pBsrc = filter_args.pGsrc + filter_args.pixelCount; // pBcomp points to B component array
-	filter_args.pRsrc2 = srcImage2.data(); // pRcomp points to the R component array
-	filter_args.pGsrc2 = filter_args.pRsrc2 + filter_args.pixelCount; // pGcomp points to the G component array
-	filter_args.pBsrc2 = filter_args.pGsrc2 + filter_args.pixelCount; // pBcomp points to B component array
+	// Pointers to the componets of the source images 1&2 to be used in the algorithm
+	filter_args.pIsrc = srcImage.data();
+	filter_args.pIsrc2 = srcImage2.data(); 
 	
-	// Pointers to the RGB arrays of the destination image
-	filter_args.pRdst = pDstImage;
-	filter_args.pGdst = filter_args.pRdst + filter_args.pixelCount;
-	filter_args.pBdst = filter_args.pGdst + filter_args.pixelCount;
-
+	// Pointer to the RGB components of the destination image
+	filter_args.pIdst = pDstImage;
 
 	/***********************************************
 	 * Measure initial time
@@ -140,7 +136,7 @@ int main() {
 	printf("Finished\n");
 
 	dElapsedTimeS = (tEnd.tv_sec - tStart.tv_sec);
-    dElapsedTimeS += (tEnd.tv_nsec - tStart.tv_nsec) / 1e+9;
+        dElapsedTimeS += (tEnd.tv_nsec - tStart.tv_nsec) / 1e+9;
 	printf("Elapsed time    : %f s.\n", dElapsedTimeS);
 
 	// Create a new image object with the calculated pixels

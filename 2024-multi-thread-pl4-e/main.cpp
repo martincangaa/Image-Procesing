@@ -81,8 +81,8 @@ int main() {
 	double dElapsedTimeS;
 
 	srcImage.display(); // Displays the source image
-	uint width = srcImage.width();
-	uint height = srcImage.height();
+	int width = srcImage.width();
+	int height = srcImage.height();
 	filter_args.pixelCount = width * height;
 
 	uint nComp = srcImage.spectrum();// source image number of components
@@ -136,19 +136,26 @@ int main() {
 	filter_args_t thread_args[NUM_THREADS];
 	uint pixelsPerThread = (filter_args.pixelCount / NUM_THREADS) * nComp;
 
-	for(int j = 0; j < 25; j++){
-		for(int t = 0; t < NUM_THREADS; t++)
-		{
-			thread_args[t] = filter_args;
-			thread_args[t].startPixel = t * pixelsPerThread;
+	for(int t = 0; t < NUM_THREADS; t++)
+	{
+		thread_args[t] = filter_args;
+		thread_args[t].startPixel = t * pixelsPerThread;
+		
+		/* The following condition ensures that all pixels from the image are passed 
+		   through the algorithm since the number of pixels might not be a multiple of the number of threads
+		   leaving some pixels without being processed
+		*/	
+		if(t == NUM_THREADS - 1) 
+			thread_args[t].finishPixel = thread_args[t].startPixel + pixelsPerThread + (filter_args.pixelCount % NUM_THREADS);
+		else
 			thread_args[t].finishPixel = thread_args[t].startPixel + pixelsPerThread;
 
-			int pthread_ret = pthread_create(&threads[t], NULL, filter, &thread_args[t]);
-			if(pthread_ret){
+		int pthread_ret = pthread_create(&threads[t], NULL, filter, &thread_args[t]);
+		if(pthread_ret){
 
-				perror("Error creating thread");
-				exit(EXIT_FAILURE);	
-			}
+			perror("Error creating thread");
+			exit(EXIT_FAILURE);	
+      
 		}
 
 		for(uint i = 0; i < NUM_THREADS; i++){
@@ -170,7 +177,7 @@ int main() {
 	printf("Finished\n");
 
 	dElapsedTimeS = (tEnd.tv_sec - tStart.tv_sec);
-    dElapsedTimeS += (tEnd.tv_nsec - tStart.tv_nsec) / 1e+9;
+    	dElapsedTimeS += (tEnd.tv_nsec - tStart.tv_nsec) / 1e+9;
 	printf("Elapsed time    : %f s.\n", dElapsedTimeS);
 
 	// Create a new image object with the calculated pixels

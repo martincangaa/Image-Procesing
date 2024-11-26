@@ -27,9 +27,9 @@ typedef struct {
 	data_t* pIsrc2;
 	data_t* pDstImage;
 
-	int items_per_packet;
-	int nPackets;
-	int pixelCount; // Size of the image in pixels
+	uint items_per_packet;
+	uint nPackets;
+	uint pixelCount; // Size of the image in pixels
 } filter_args_t;
 
 /************************************************
@@ -40,6 +40,16 @@ typedef struct {
  * 	dst = 255 - ((255 - src1) * (255 - src2) / 255)
  * 
  * For each pixel, calculate the new value of the pixel (R, G, B) in the destination image
+ * 
+ * We only need one pointer per Image because if we go trough the pointer we'll reach
+ * all the components of the image
+ * 
+ *       ┌─────┬─────┬─────┐ 
+ *       │     │     │     │ 
+ *       │  R  │  G  │  B  │ 
+ *       │     │     │     │ 
+ * 00x0h └─────┴─────┴─────┘ FFx0h 
+ *
  */
 void filter (filter_args_t args) {
 	
@@ -85,8 +95,8 @@ int main() {
 
 
 	srcImage.display(); // Displays the source image
-	uint width = srcImage.width();// Getting information from the source image
-	uint height = srcImage.height();	
+	int width = srcImage.width();// Getting information from the source image
+	int height = srcImage.height();	
 	uint nComp = srcImage.spectrum();// source image number of components
 	         // Common values for spectrum (number of image components):
 				//  B&W images = 1
@@ -101,7 +111,7 @@ int main() {
 
 	
 	// Check if the images have the same size
-	if (srcImage2.width() != srcImage.width() || srcImage2.height()	 != srcImage.height()) {
+	if (width != srcImage.width() || height != srcImage.height()) {
 		throw std::runtime_error("Images must have the same size"); // This adds robustness to the code
 		exit(-1);
 	}
@@ -113,23 +123,11 @@ int main() {
 		exit(-2);
 	}
 
-	/*
 	// Pointers to the componet arrays of the source images 1&2 to be used in the algorithm
-	filter_args.pRsrc = srcImage.data(); // pRcomp points to the R component array
-	filter_args.pGsrc = filter_args.pRsrc + filter_args.pixelCount; // pGcomp points to the G component array
-	filter_args.pBsrc = filter_args.pGsrc + filter_args.pixelCount; // pBcomp points to B component array
-	filter_args.pRsrc2 = srcImage2.data(); // pRcomp points to the R component array
-	filter_args.pGsrc2 = filter_args.pRsrc2 + filter_args.pixelCount; // pGcomp points to the G component array
-	filter_args.pBsrc2 = filter_args.pGsrc2 + filter_args.pixelCount; // pBcomp points to B component array
-	
-	// Pointers to the RGB arrays of the destination image
-	filter_args.pRdst = pDstImage;
-	filter_args.pGdst = filter_args.pRdst + filter_args.pixelCount;
-	filter_args.pBdst = filter_args.pGdst + filter_args.pixelCount;
-	*/
-
 	filter_args.pIsrc = srcImage.data();
 	filter_args.pIsrc2 = srcImage2.data();
+	
+	// Pointers to the RGB arrays of the destination image
 	filter_args.pDstImage = pDstImage;
 
 	/***********************************************
