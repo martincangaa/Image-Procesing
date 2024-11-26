@@ -26,10 +26,11 @@ const int FAILURE_GETTIME = -1;
 
 // Filter argument data type
 typedef struct {
-	data_t *pIsrc; // Pointers to the R, G and B components origins
-	data_t *pIdst;
-	data_t *pIsrc2; // Pointers to the R, G and B components destinations
-	
+	data_t *pIsrc; // Pointer to the R, G and B components of source image
+	data_t *pIsrc2; // Pointer to the R, G and B components of 2nd source image
+
+	data_t *pIdst; // Pointer to the destination image components (R,G,B)
+
 	uint pixelCount; // Size of the image in pixels
 	uint startPixel; // Pixel to start the algorithm
 	uint finishPixel; // Pixel to finish the algorithm
@@ -46,8 +47,15 @@ filter_args_t filter_args;
  * 
  * For each pixel, calculate the new value of the pixel (R, G, B) in the destination image
  * 
- * Now each thread can run an instace of filter, processing a specific
- * rangeo of pixels
+ * We only need one pointer per Image because if we go trough the pointer we'll reach
+ * all the components of the image
+ * 
+ *       ┌─────┬─────┬─────┐ 
+ *       │     │     │     │ 
+ *       │  R  │  G  │  B  │ 
+ *       │     │     │     │ 
+ * 00x0h └─────┴─────┴─────┘ FFx0h 
+ *
  */
 void* filter (void* arg) {
 	filter_args_t * filter_args = (filter_args_t *) arg;
@@ -84,7 +92,7 @@ int main() {
 				//  Special color images = 4 (RGB and alpha/transparency channel)
 	
 	// Check if the images have the same size
-	if (srcImage.width() != srcImage2.width() || srcImage.height() != srcImage2.height()) {
+	if (width != srcImage2.width() || height != srcImage2.height()) {
 		throw std::runtime_error("Images must have the same size"); // This adds robustness to the code
 		exit(-1);
 	}
@@ -115,8 +123,13 @@ int main() {
 	//Set up threads
 
 	/***********************************************
-	 *  First the loop creates a thread in each iteration
-	 * 	Then, it is configured the struct of the arg
+	 * Multi Threaded implementation:
+	 *
+	 * First create the struct for the thread
+	 * Each one containing the pointers to the images and the start and finish pixels
+	 * 
+	 * Then creates the tasks for the thread passing as parameter
+	 * its corresponding struct
 	 */
 	
 	pthread_t threads[NUM_THREADS];
