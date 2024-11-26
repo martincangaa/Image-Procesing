@@ -26,16 +26,10 @@ const int FAILURE_GETTIME = -1;
 
 // Filter argument data type
 typedef struct {
-	data_t *pRsrc; // Pointers to the R, G and B components origins
-	data_t *pGsrc;
-	data_t *pBsrc;
-	data_t *pRdst;
-	data_t *pGdst;
-	data_t *pBdst;
+	data_t *pIsrc; // Pointer to the R, G and B components of source image
+	data_t *pIsrc2; // Pointer to the R, G and B components of 2nd source image
 
-	data_t *pRsrc2; // Pointers to the R, G and B components destinations
-	data_t *pGsrc2;
-	data_t *pBsrc2;
+	data_t *pIdst; // Pointer to the destination image components (R,G,B)
 
 	uint pixelCount; // Size of the image in pixels
 	uint startPixel; // Pixel to start the algorithm
@@ -53,17 +47,22 @@ filter_args_t filter_args;
  * 
  * For each pixel, calculate the new value of the pixel (R, G, B) in the destination image
  * 
- * Now each thread can run an instace of filter, processing a specific
- * rangeo of pixels
+ * We only need one pointer per Image because if we go trough the pointer we'll reach
+ * all the components of the image
+ * 
+ *       ┌─────┬─────┬─────┐ 
+ *       │     │     │     │ 
+ *       │  R  │  G  │  B  │ 
+ *       │     │     │     │ 
+ * 00x0h └─────┴─────┴─────┘ FFx0h 
+ *
  */
 void* filter (void* arg) {
 	filter_args_t * filter_args = (filter_args_t *) arg;
 
-    for (uint i = filter_args->startPixel; i < filter_args->finishPixel; i++) {
+    	for (uint i = filter_args->startPixel; i < filter_args->finishPixel; i++) {
 
-		*(filter_args->pRdst + i) = 255 - ((255 - *(filter_args->pRsrc + i)) * (255 - *(filter_args->pRsrc2 + i)) / 255);
-		*(filter_args->pGdst + i) = 255 - ((255 - *(filter_args->pGsrc + i)) * (255 - *(filter_args->pGsrc2 + i)) / 255);
-		*(filter_args->pBdst + i) = 255 - ((255 - *(filter_args->pBsrc + i)) * (255 - *(filter_args->pBsrc2 + i)) / 255);
+		*(filter_args->pIdst + i) = 255 - ((255 - *(filter_args->pIsrc + i)) * (255 - *(filter_args->pIsrc2 + i)) / 255);
 	}
 
 	return NULL;
@@ -93,7 +92,7 @@ int main() {
 				//  Special color images = 4 (RGB and alpha/transparency channel)
 	
 	// Check if the images have the same size
-	if (srcImage.width() != srcImage2.width() || srcImage.height() != srcImage2.height()) {
+	if (width != srcImage2.width() || height != srcImage2.height()) {
 		throw std::runtime_error("Images must have the same size"); // This adds robustness to the code
 		exit(-1);
 	}
@@ -106,17 +105,11 @@ int main() {
 	}
 
 	// Pointers to the componet arrays of the source images 1&2 to be used in the algorithm
-	filter_args.pRsrc = srcImage.data(); // pRcomp points to the R component array
-	filter_args.pGsrc = filter_args.pRsrc + filter_args.pixelCount; // pGcomp points to the G component array
-	filter_args.pBsrc = filter_args.pGsrc + filter_args.pixelCount; // pBcomp points to B component array
-	filter_args.pRsrc2 = srcImage2.data(); // pRcomp points to the R component array
-	filter_args.pGsrc2 = filter_args.pRsrc2 + filter_args.pixelCount; // pGcomp points to the G component array
-	filter_args.pBsrc2 = filter_args.pGsrc2 + filter_args.pixelCount; // pBcomp points to B component array
+	filter_args.pIsrc = srcImage.data(); // pRcomp points to the R component array
+	filter_args.pIsrc2 = srcImage2.data(); // pRcomp points to the R component array
 	
 	// Pointers to the RGB arrays of the destination image
-	filter_args.pRdst = pDstImage;
-	filter_args.pGdst =filter_args.pRdst + filter_args.pixelCount;
-	filter_args.pBdst =filter_args. pGdst + filter_args.pixelCount;
+	filter_args.pIdst = pDstImage;
 
 	/***********************************************
 	 * Measure initial time
@@ -130,13 +123,18 @@ int main() {
 	//Set up threads
 
 	/***********************************************
-	 *  First the loop creates a thread in each iteration
-	 * 	Then, it is configured the struct of the arg
+	 * Multi Threaded implementation:
+	 *
+	 * First create the struct for the thread
+	 * Each one containing the pointers to the images and the start and finish pixels
+	 * 
+	 * Then creates the tasks for the thread passing as parameter
+	 * its corresponding struct
 	 */
 	
 	pthread_t threads[NUM_THREADS];
 	filter_args_t thread_args[NUM_THREADS];
-	uint pixelsPerThread = filter_args.pixelCount / NUM_THREADS;
+	uint pixelsPerThread = (filter_args.pixelCount / NUM_THREADS) * nComp;
 
 	for(int t = 0; t < NUM_THREADS; t++)
 	{
