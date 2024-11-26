@@ -140,7 +140,15 @@ int main() {
 	{
 		thread_args[t] = filter_args;
 		thread_args[t].startPixel = t * pixelsPerThread;
-		thread_args[t].finishPixel = thread_args[t].startPixel + pixelsPerThread;
+		
+		/* The following condition ensures that all pixels from the image are passed 
+		   through the algorithm since the number of pixels might not be a multiple of the number of threads
+		   leaving some pixels without being processed
+		*/	
+		if(t == NUM_THREADS - 1) 
+			thread_args[t].finishPixel = thread_args[t].startPixel + pixelsPerThread + (filter_args.pixelCount % NUM_THREADS);
+		else
+			thread_args[t].finishPixel = thread_args[t].startPixel + pixelsPerThread;
 
 		int pthread_ret = pthread_create(&threads[t], NULL, filter, &thread_args[t]);
 		if(pthread_ret){
@@ -168,7 +176,7 @@ int main() {
 	printf("Finished\n");
 
 	dElapsedTimeS = (tEnd.tv_sec - tStart.tv_sec);
-    dElapsedTimeS += (tEnd.tv_nsec - tStart.tv_nsec) / 1e+9;
+    	dElapsedTimeS += (tEnd.tv_nsec - tStart.tv_nsec) / 1e+9;
 	printf("Elapsed time    : %f s.\n", dElapsedTimeS);
 
 	// Create a new image object with the calculated pixels
