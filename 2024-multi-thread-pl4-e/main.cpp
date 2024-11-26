@@ -155,11 +155,12 @@ int main() {
 
 			perror("Error creating thread");
 			exit(EXIT_FAILURE);	
+      
 		}
-	}
 
-	for(uint i = 0; i < NUM_THREADS; i++){
-		pthread_join(threads[i], NULL);
+		for(uint i = 0; i < NUM_THREADS; i++){
+			pthread_join(threads[i], NULL);
+		}
 	}
 
 	/***********************************************
