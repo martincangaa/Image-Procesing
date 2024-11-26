@@ -27,9 +27,9 @@ typedef struct {
 	data_t* pIsrc2;
 	data_t* pDstImage;
 
-	int items_per_packet;
-	int nPackets;
-	int pixelCount; // Size of the image in pixels
+	uint items_per_packet;
+	uint nPackets;
+	uint pixelCount; // Size of the image in pixels
 } filter_args_t;
 
 /************************************************
@@ -95,8 +95,8 @@ int main() {
 
 
 	srcImage.display(); // Displays the source image
-	uint width = srcImage.width();// Getting information from the source image
-	uint height = srcImage.height();	
+	int width = srcImage.width();// Getting information from the source image
+	int height = srcImage.height();	
 	uint nComp = srcImage.spectrum();// source image number of components
 	         // Common values for spectrum (number of image components):
 				//  B&W images = 1

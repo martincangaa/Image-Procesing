@@ -73,8 +73,8 @@ int main() {
 
 
 	srcImage.display(); // Displays the source image
-	uint width = srcImage.width();// Getting information from the source image
-	uint height = srcImage.height();	
+	int width = srcImage.width();// Getting information from the source image
+	int height = srcImage.height();	
 	filter_args.nComp = srcImage.spectrum();// source image number of components
 	         // Common values for spectrum (number of image components):
 				//  B&W images = 1

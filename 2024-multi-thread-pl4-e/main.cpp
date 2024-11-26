@@ -81,8 +81,8 @@ int main() {
 	double dElapsedTimeS;
 
 	srcImage.display(); // Displays the source image
-	uint width = srcImage.width();
-	uint height = srcImage.height();
+	int width = srcImage.width();
+	int height = srcImage.height();
 	filter_args.pixelCount = width * height;
 
 	uint nComp = srcImage.spectrum();// source image number of components
