@@ -136,22 +136,24 @@ int main() {
 	filter_args_t thread_args[NUM_THREADS];
 	uint pixelsPerThread = (filter_args.pixelCount / NUM_THREADS) * nComp;
 
-	for(int t = 0; t < NUM_THREADS; t++)
-	{
-		thread_args[t] = filter_args;
-		thread_args[t].startPixel = t * pixelsPerThread;
-		thread_args[t].finishPixel = thread_args[t].startPixel + pixelsPerThread;
+	for(int j = 0; j < 25; j++){
+		for(int t = 0; t < NUM_THREADS; t++)
+		{
+			thread_args[t] = filter_args;
+			thread_args[t].startPixel = t * pixelsPerThread;
+			thread_args[t].finishPixel = thread_args[t].startPixel + pixelsPerThread;
 
-		int pthread_ret = pthread_create(&threads[t], NULL, filter, &thread_args[t]);
-		if(pthread_ret){
+			int pthread_ret = pthread_create(&threads[t], NULL, filter, &thread_args[t]);
+			if(pthread_ret){
 
-			perror("Error creating thread");
-			exit(EXIT_FAILURE);	
+				perror("Error creating thread");
+				exit(EXIT_FAILURE);	
+			}
 		}
-	}
 
-	for(uint i = 0; i < NUM_THREADS; i++){
-		pthread_join(threads[i], NULL);
+		for(uint i = 0; i < NUM_THREADS; i++){
+			pthread_join(threads[i], NULL);
+		}
 	}
 
 	/***********************************************
