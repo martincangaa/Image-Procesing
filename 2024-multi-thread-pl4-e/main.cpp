@@ -31,9 +31,9 @@ typedef struct {
 
 	data_t *pIdst; // Pointer to the destination image components (R,G,B)
 
-	uint pixelCount; // Size of the image in pixels
-	uint startPixel; // Pixel to start the algorithm
-	uint finishPixel; // Pixel to finish the algorithm
+	int pixelCount; // Size of the image in pixels
+	int startPixel; // Pixel to start the algorithm
+	int finishPixel; // Pixel to finish the algorithm
 } filter_args_t;
 
 

@@ -27,8 +27,8 @@ typedef struct {
 
 	data_t *pIdst; // Pointer to the destination Image
 
-	uint pixelCount; // Size of the image in pixels
-	uint nComp; // Number of components of the image (3) (RGB)
+	int pixelCount; // Size of the image in pixels
+	int nComp; // Number of components of the image (3) (RGB)
 } filter_args_t;
 
 /************************************************

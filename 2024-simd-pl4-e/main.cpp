@@ -27,9 +27,9 @@ typedef struct {
 	data_t* pIsrc2;
 	data_t* pDstImage;
 
-	uint items_per_packet;
-	uint nPackets;
-	uint pixelCount; // Size of the image in pixels
+	int items_per_packet;
+	int nPackets;
+	int pixelCount; // Size of the image in pixels
 } filter_args_t;
 
 /************************************************
