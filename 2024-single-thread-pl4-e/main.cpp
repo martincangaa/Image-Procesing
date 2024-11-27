@@ -52,7 +52,7 @@ typedef struct {
  */
 void filter (filter_args_t args) {
 	
-    for (uint i = 0; i < args.pixelCount * args.nComp; i++) {
+    for (int i = 0; i < args.pixelCount * args.nComp; i++) {
 		
 		*(args.pIdst + i) = 255 - ((255 - *(args.pIsrc + i)) * (255 - *(args.pIsrc2 + i)) / 255);
 	}
