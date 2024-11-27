@@ -60,7 +60,7 @@ filter_args_t filter_args;
 void* filter (void* arg) {
 	filter_args_t * filter_args = (filter_args_t *) arg;
 
-    	for (uint i = filter_args->startPixel; i < filter_args->finishPixel; i++) {
+    	for (int i = filter_args->startPixel; i < filter_args->finishPixel; i++) {
 
 		*(filter_args->pIdst + i) = 255 - ((255 - *(filter_args->pIsrc + i)) * (255 - *(filter_args->pIsrc2 + i)) / 255);
 	}
