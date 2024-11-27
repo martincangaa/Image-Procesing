@@ -1,7 +1,7 @@
 /*
  * Main.cpp
  *
- *  Created on: Fall 2019
+ *  Created on: Fall 2024
  */
 
 #include <stdio.h>
@@ -143,10 +143,8 @@ int main() {
 	/************************************************
 	 * Algorithm.
 	 */
-	for(int i = 0; i < 25; i++){
-		filter(filter_args);
-	}
-
+	
+	filter(filter_args);
 
 	/***********************************************
 	 *   - Measure the end time
