@@ -140,7 +140,7 @@ int main() {
 	// Create a new image object with the calculated pixels
 	// In case of normal color images use nComp=3,
 	// In case of B/W images use nComp=1.
-	CImg<data_t> dstImage(pDstImage, width, height, 1, nComp);
+	CImg<data_t> dstImage(pDstImage, width, height, 1, filter_args.nComp);
 
 	// Store destination image in disk
 	dstImage.save(DESTINATION_IMG); 
