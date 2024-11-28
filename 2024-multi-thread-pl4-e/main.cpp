@@ -157,11 +157,11 @@ int main() {
 			exit(EXIT_FAILURE);	
       
 		}
-
-		for(uint i = 0; i < NUM_THREADS; i++){
+	}
+	
+	for(uint i = 0; i < NUM_THREADS; i++){
 			pthread_join(threads[i], NULL);
 		}
-	}
 
 	/***********************************************
 	 *   - Measure the end time
